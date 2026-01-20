@@ -1,4 +1,4 @@
-/*
+﻿/*
  * config.h - Hardware Configuration and Constants
  * CYD Handheld Radar Motion Tracker
  *
@@ -14,26 +14,64 @@
 // ============================================================================
 // HARDWARE GPIO PIN DEFINITIONS
 // ============================================================================
+// Updated for ESP32-2432S028R (CYD) actual pinout - Rev 2.0
+// See WIRING_GUIDE.md for complete pin mapping
 
+// ============================================================================
+// SD CARD CONFIGURATION - SET THIS BASED ON YOUR BUILD
+// ============================================================================
+// Set to true if using SD card (TF card slot)
+// Set to false if NOT using SD card (frees GPIO 5 for CENTER button)
+#define USE_SD_CARD         true
+
+// ============================================================================
 // LD2450 Radar Sensor (UART)
-#define RADAR_RX_PIN        22    // ESP32 RX ← LD2450 TX
-#define RADAR_TX_PIN        27    // ESP32 TX → LD2450 RX
+// ============================================================================
+#define RADAR_RX_PIN        22    // ESP32 RX ← LD2450 TX (Serial Port connector)
+#define RADAR_TX_PIN        27    // ESP32 TX → LD2450 RX (Serial Port connector)
 
+// ============================================================================
 // Audio Output (DAC)
-#define DAC_AUDIO_PIN       25    // ESP32 DAC1 → PAM8403 amplifier
+// ============================================================================
+// IMPORTANT: GPIO 26 is the correct audio pin on this board!
+// GPIO 25 is used by touch panel clock (TP CLK) - DO NOT USE FOR AUDIO
+#define DAC_AUDIO_PIN       26    // ESP32 DAC → Built-in speaker or PAM8403
 
+// ============================================================================
 // 5-Way Navigation Switch
-#define BTN_UP              4     // UP button
-#define BTN_DOWN            16    // DOWN button
-#define BTN_LEFT            17    // LEFT button
-#define BTN_RIGHT           21    // RIGHT button
-#define BTN_CENTER          2     // CENTER/SELECT button
+// ============================================================================
+// GPIO 4, 16, 17 freed from RGB LED (must remove/disable RGB LED)
+// GPIO 21 is screen backlight - DO NOT USE
+// GPIO 2 is TFT DC - DO NOT USE
+#define BTN_UP              4     // UP button (freed from RGB LED)
+#define BTN_DOWN            16    // DOWN button (freed from RGB LED)
+#define BTN_LEFT            17    // LEFT button (freed from RGB LED)
+#define BTN_RIGHT           35    // RIGHT button (Expansion IO1 - INPUT ONLY, needs external 10kΩ pull-up!)
 
+// CENTER button depends on SD card usage
+#if USE_SD_CARD
+  // Using SD card: GPIO 5 is occupied, use BOOT button (GPIO 0)
+  // Note: May interfere with programming - hold during upload if needed
+  #define BTN_CENTER        0     // CENTER button (BOOT button)
+  #define CENTER_BTN_NOTE   "Using GPIO 0 (BOOT) - hold during upload if programming fails"
+#else
+  // Not using SD card: GPIO 5 is available
+  #define BTN_CENTER        5     // CENTER button (SD card CD/DAT3 pin)
+  #define CENTER_BTN_NOTE   "Using GPIO 5 (SD card pin)"
+#endif
+
+// ============================================================================
 // Battery Monitoring (Optional)
-#define BATTERY_ADC_PIN     35    // Voltage divider input (input-only)
+// ============================================================================
+// Note: If using GPIO 35 for RIGHT button, battery monitoring requires
+// a different approach (hardware LED monitor recommended)
+#define BATTERY_ADC_PIN     35    // Shared with BTN_RIGHT - see note above
+#define USE_BATTERY_ADC     false // Set true only if NOT using GPIO 35 for button
 
+// ============================================================================
 // Display Backlight PWM (for brightness control)
-#define BACKLIGHT_PIN       32    // PWM channel for backlight
+// ============================================================================
+#define BACKLIGHT_PIN       21    // Screen backlight LED control
 #define BACKLIGHT_CHANNEL   0     // LEDC channel
 #define BACKLIGHT_FREQ      5000  // 5kHz PWM frequency
 #define BACKLIGHT_RES       8     // 8-bit resolution (0-255)
@@ -293,3 +331,4 @@ struct SystemStatus {
 };
 
 #endif // CONFIG_H
+

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * CYD_Motion_Tracker.ino - Main Arduino Sketch
  * M314-Inspired Handheld Motion Tracker
  *
@@ -87,11 +87,16 @@ void setup() {
   Serial.println("========================================\n");
 
   // Initialize buttons
+  // Note: GPIO 35 (BTN_RIGHT) is input-only and has no internal pull-up
+  // An external 10kΩ pull-up resistor to 3.3V is REQUIRED for BTN_RIGHT
   pinMode(BTN_UP, INPUT_PULLUP);
   pinMode(BTN_DOWN, INPUT_PULLUP);
   pinMode(BTN_LEFT, INPUT_PULLUP);
-  pinMode(BTN_RIGHT, INPUT_PULLUP);
+  pinMode(BTN_RIGHT, INPUT);        // GPIO 35 - external pull-up required!
   pinMode(BTN_CENTER, INPUT_PULLUP);
+
+  Serial.print("CENTER button: ");
+  Serial.println(CENTER_BTN_NOTE);
 
   // Initialize DAC for audio
   pinMode(DAC_AUDIO_PIN, OUTPUT);
@@ -737,3 +742,4 @@ void updateButtons() {
   btnRightState = digitalRead(BTN_RIGHT);
   btnCenterState = digitalRead(BTN_CENTER);
 }
+
